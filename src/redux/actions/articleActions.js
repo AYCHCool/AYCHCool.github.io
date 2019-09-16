@@ -113,7 +113,9 @@ export const rateArticle = (rate, slug) => async (dispatch) => {
     await API_SERVICE.get(`/articles/${slug}/ratings`);
     const fetchedArticle = await API_SERVICE.get(`/articles/${slug}`);
     dispatch(setRate(fetchedArticle.data.article.ratings));
+    return true;
   } catch (error) {
     authenticationErrorAlert(error.response.data.errors.message);
+    return 'false';
   }
 };

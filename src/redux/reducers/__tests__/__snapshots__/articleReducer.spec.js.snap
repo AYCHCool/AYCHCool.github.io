@@ -71,6 +71,7 @@ Object {
     "updatedAt": "2019-09-13T07:32:44.414Z",
     "userId": "fdfe8617-208d-4b87-a000-5d6840786ab8",
   },
+  "articleStat": Object {},
   "articles": Array [],
   "error": Object {},
   "loading": false,

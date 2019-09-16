@@ -10,12 +10,15 @@ import {
   AUTH_LOADING,
   AUTH_SUCCESS,
   LOGOUT,
+  SOCIAL_LOGIN_SUCCESS,
 } from './types/authType';
 import {
   registerAccount,
   signInAccount,
   logoutAccount,
   getCurrentUserProfile,
+  authorizeSocialUser,
+  authFailed,
 } from './authActions';
 
 const mockStore = configureMockStore([thunk]);
@@ -289,6 +292,79 @@ describe('Signin User actions', () => {
     ];
     await axios.post.mockRejectedValue(failedRequest);
     await store.dispatch(logoutAccount());
+    const response = store.getActions();
+    expect(response).toEqual(expectedActions);
+  });
+  it('should dispatch AUTH_LOADING and AUTH_SUCCESS for login without a userData', async () => {
+    const successfulRequest = {
+      data: {
+        user: {
+          token: 'jkdbfjdsbfkbdskjfglkdsflksdbfjbsdfbsdjb',
+        },
+      },
+    };
+
+    const expectedActions = [
+      {
+        type: AUTH_LOADING,
+        payload: {
+          loading: true,
+        },
+      },
+      {
+        type: AUTH_SUCCESS,
+        payload: {
+          loading: false,
+          user: authResponse,
+        },
+      },
+    ];
+
+    axios.post.mockResolvedValue(successfulRequest);
+    await store.dispatch(signInAccount(null, props.history));
+    const response = store.getActions();
+    expect(response).toEqual(expectedActions);
+  });
+  it('should signin a user using social login', async () => {
+    const successfulRequest = {
+      data: {
+        user: {
+          token: 'jkdbfjdsbfkbdskjfglkdsflksdbfjbsdfbsdjb',
+        },
+      },
+    };
+    const expectedActions = [
+      {
+        type: SOCIAL_LOGIN_SUCCESS,
+        payload: {
+          ...authResponse,
+        },
+      },
+    ];
+    axios.post.mockResolvedValue(successfulRequest);
+    await store.dispatch(authorizeSocialUser());
+    const response = store.getActions();
+    expect(response).toEqual(expectedActions);
+  });
+  it('should throw error when signin a user using social login without token', async () => {
+    const failedRequest = {
+      data: {
+        errors: [
+          'No token provided',
+        ],
+      },
+    };
+    const expectedActions = [
+      {
+        type: AUTH_FAILED,
+        payload: {
+          error: 'No token provided',
+          loading: false,
+        },
+      },
+    ];
+    axios.post.mockResolvedValue(failedRequest);
+    await store.dispatch(authFailed('No token provided'));
     const response = store.getActions();
     expect(response).toEqual(expectedActions);
   });

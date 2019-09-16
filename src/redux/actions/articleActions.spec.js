@@ -11,8 +11,9 @@ import {
   CLEAR_ARTICLE_ERROR,
   CREATE_COMMENT,
   GET_ARTICLE_STAT,
+  SET_ARTICLE_RATE,
 } from './types/articleType';
-import { getArticleBySlug, createArticleOnComment } from './articleActions';
+import { getArticleBySlug, createArticleOnComment, rateArticle } from './articleActions';
 
 const mockStore = configureMockStore([thunk]);
 
@@ -258,8 +259,12 @@ describe('Get single article action', () => {
   it('should dispatch ARTICLE STAT when getting an articleStat', async () => {
     const successfulRequest = {
       data: {
-        article: { ...articleResponse, tagList: ['tag'] },
+        article: articleResponse,
       },
+    };
+
+    const successfulRelatedArticlesRequest = {
+      data: relatedArticlesResponse,
     };
 
     const expectedArticleStat = {
@@ -283,7 +288,7 @@ describe('Get single article action', () => {
         type: GET_SINGLE_ARTICLE,
         payload: {
           loading: false,
-          article: { ...articleResponse, tagList: ['tag'] },
+          article: articleResponse,
         },
       },
       {
@@ -298,9 +303,46 @@ describe('Get single article action', () => {
         },
       },
     };
-    axios.get.mockResolvedValue(successfulRequest);
-    axios.post.mockResolvedValue(expectedResponse);
+    axios.get.mockResolvedValueOnce(successfulRequest);
+    axios.get.mockResolvedValueOnce(successfulRelatedArticlesRequest);
+    axios.post.mockResolvedValueOnce(expectedResponse);
     await store.dispatch(getArticleBySlug('getting-started-with-nodejs-&-express-1564498223366-74536', '10ba038e-48da-487b-96e8-8d3b99b6d18a'));
+    const response = store.getActions();
+    expect(response).toEqual(expectedActions);
+  });
+
+  it('should dispatch ARTICLE STAT when getting an articleStat', async () => {
+    const successfulRatingRequest = {
+      data: {
+        article: {
+          articleId: '692778f9-0ff9-4a5d-b979-85afb4a2c8a8',
+          firstName: 'John',
+          lastName: 'Done',
+          message: 'Your rating has been added successfully',
+          rate: 2,
+        },
+      },
+    };
+    const successfulGetRatingRequest = {
+      data: {
+        article: [],
+      },
+    };
+    const successfulArticleRequest = {
+      data: {
+        article: articleResponse,
+      },
+    };
+    const expectedActions = [
+      {
+        type: SET_ARTICLE_RATE,
+        payload: 5,
+      },
+    ];
+    axios.post.mockResolvedValueOnce(successfulRatingRequest);
+    axios.get.mockResolvedValueOnce(successfulGetRatingRequest);
+    axios.get.mockResolvedValueOnce(successfulArticleRequest);
+    await store.dispatch(rateArticle(5, '3-bad-guys'));
     const response = store.getActions();
     expect(response).toEqual(expectedActions);
   });

@@ -12,19 +12,20 @@ const RateComponent = ({
 }) => {
   const [currentUserRate, setCurrentUserRate] = useState(0);
   useEffect(() => {
-    const sendRating = async () => {
-      await rateFunction({ rate: currentUserRate }, slug);
-    };
-    if (currentUserRate > 0) sendRating();
-  }, [currentUserRate]);
-
-  useEffect(() => {
     const previousRate = (rate === undefined || rate === 'null') ? 0 : rate;
     setCurrentUserRate(previousRate);
   }, [rate]);
 
-  const updateCurrentUserRate = (newValue) => {
+  /* istanbul ignore next-line */
+  const updateCurrentUserRate = async (newValue) => {
     setCurrentUserRate(newValue);
+    const sendRating = async () => {
+      const isSuccessfull = await rateFunction({ rate: newValue }, slug);
+      return isSuccessfull;
+    };
+    const isSuccessfull = await sendRating();
+    // eslint-disable-next-line no-unused-vars
+    const resetRating = isSuccessfull === 'false' ? setCurrentUserRate(0) : null;
   };
   return (
     <div className="star_rate_component">
